@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBpedia Person Search</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+</head>
+<body>
+    <div style="min-height: calc(100vh - 100px);">
+      <header class="pt-5 px-5 pb-3 text-center bg-light">
+        <h1>Wyszukaj osobę w DBpedia</h1>
+      
+        <form method="post" action="/" class="my-3" style="max-width: 500px; margin: 0 auto;">
+          <div class="input-group mt-4">
+            <input class="form-control" type="text" name="query" placeholder="Wpisz nazwę osoby" required>
+            <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
+          </div>
+        </form>
+      </header>
+        <main class="p-5">
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            {% if graph_html %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Graf wiedzy
+                    </div>
+                    <div class="card-body row">
+                        <div class="mb-3 col-8">
+                            {{ graph_html|safe }}
+                        </div>
+                        <div class="col-4">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <strong>Legenda kolorów węzłów</strong>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <span class="rounded-circle me-2" style="display:inline-block;width:20px;height:20px;background:#1f78b4;border:1px solid #ccc;"></span>
+                                            Osoba&nbsp;<span class="text-muted">(Person)</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <span class="rounded-circle me-2" style="display:inline-block;width:20px;height:20px;background:#33a02c;border:1px solid #ccc;"></span>
+                                            Miejsce&nbsp;<span class="text-muted">(Place)</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <span class="rounded-circle me-2" style="display:inline-block;width:20px;height:20px;background:#e31a1c;border:1px solid #ccc;"></span>
+                                            Wydarzenie&nbsp;<span class="text-muted">(Event)</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <span class="rounded-circle me-2" style="display:inline-block;width:20px;height:20px;background:#ff7f00;border:1px solid #ccc;"></span>
+                                            Rzecz&nbsp;<span class="text-muted">(Thing)</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <span class="rounded-circle me-2" style="display:inline-block;width:20px;height:20px;background:#6a3d9a;border:1px solid #ccc;"></span>
+                                            Domyślny&nbsp;<span class="text-muted">(Default)</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div id="node-description" class="alert alert-secondary mt-2" style="max-height: 338px; overflow-y: auto;">
+                                Kliknij na węzeł, aby zobaczyć opis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    function waitForNetwork() {
+                        if (typeof network !== 'undefined') {
+                            network.on("click", function(params) {
+                                if (params.nodes.length > 0) {
+                                    var nodeId = params.nodes[0];
+                                    fetch("/node_description?node_uri=" + encodeURIComponent(nodeId))
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            document.getElementById("node-description").innerText = data.description || "Brak opisu.";
+                                        })
+                                        .catch(() => {
+                                            document.getElementById("node-description").innerText = "Błąd pobierania opisu.";
+                                        });
+                                }
+                            });
+                        } else {
+                            setTimeout(waitForNetwork, 100);
+                        }
+                    }
+                    waitForNetwork();
+                </script>
+            {% endif %}
+        </main>
+    </div>
+
+    <footer class="text-center p-3 mt-3 mx-5 border-top">
+        <small>Projekt zrealizowany w grupie:</small>
+        <br />
+        Michał Krużołek, Krystian Kurlej, Wojciech Gradek
+    </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+</body>
+</html>
